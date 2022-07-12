@@ -1,11 +1,10 @@
-from patterns.singleton import Singleton
 from prettytable import PrettyTable
 
 
-class PlateQueue(metaclass=Singleton):
+class PlateQueue:
 
     plates = dict()
-    size = 20
+    size = 3
 
     def __str__(self):
         table = PrettyTable()
@@ -22,13 +21,25 @@ class PlateQueue(metaclass=Singleton):
 
         if not self.full():
             self.plates[plate] += 1
+        else:
+            print('Desired plate was **{}**.'.format(plate))
 
     def remove(self, plate):
         if not self.empty() and self.plates.get(plate) > 0:
             self.plates[plate] -= 1
+        else:
+            print('Desired plate was **{}**.'.format(plate))
+
+    def __len__(self):
+        length = 0
+
+        for key in self.plates.keys():
+            length += self.plates[key]
+
+        return length
 
     def full(self):
-        status = self.size - len(self.plates.values()) == 0
+        status = self.size - len(self) == 0
 
         if status:
             print('Full queue. Eat food.')
@@ -36,7 +47,7 @@ class PlateQueue(metaclass=Singleton):
         return status
 
     def empty(self):
-        status = len(self.plates.values()) == 0
+        status = len(self) == 0
 
         if status:
             print('Empty queue. Cook food.')
@@ -46,6 +57,7 @@ class PlateQueue(metaclass=Singleton):
 
 if __name__ == '__main__':
     queue1 = PlateQueue()
-    queue2 = PlateQueue()
-    queue1.add('Spaghetti')
-    print(queue2)
+
+    for _ in range(10):
+        print(queue1.empty())
+        queue1.add('Spaghetti')
