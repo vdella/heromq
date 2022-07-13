@@ -1,10 +1,14 @@
 from prettytable import PrettyTable
+from multiprocessing import Lock
 
 
 class PlateQueue:
 
     plates = dict()
     size = 3
+
+    def __init__(self):
+        self.lock = Lock()
 
     def __str__(self):
         table = PrettyTable()
@@ -16,19 +20,21 @@ class PlateQueue:
         return str(table)
 
     def add(self, plate):
+        self.lock.acquire()
         if not self.plates.get(plate):
             self.plates[plate] = 0
+        self.lock.release()
 
+        self.lock.acquire()
         if not self.full():
             self.plates[plate] += 1
-        else:
-            print('Desired plate was **{}**.'.format(plate))
+        self.lock.release()
 
     def remove(self, plate):
+        self.lock.acquire()
         if not self.empty() and self.plates.get(plate) > 0:
             self.plates[plate] -= 1
-        else:
-            print('Desired plate was **{}**.'.format(plate))
+        self.lock.release()
 
     def __len__(self):
         length = 0
@@ -39,20 +45,10 @@ class PlateQueue:
         return length
 
     def full(self):
-        status = self.size - len(self) == 0
-
-        if status:
-            print('Full queue. Eat food.')
-
-        return status
+        return len(self) == self.size
 
     def empty(self):
-        status = len(self) == 0
-
-        if status:
-            print('Empty queue. Cook food.')
-
-        return status
+        return len(self) == 0
 
 
 if __name__ == '__main__':

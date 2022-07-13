@@ -1,42 +1,45 @@
-from structure import PlateQueue
+from multiprocessing import Process
+from random import randint
 from atexit import register
 import zmq
 
 
-def welcome():
-    return 'Type <operation> <plate>\n' + \
-            'Allowed operations are:\n' + \
-            '> cook\n' + \
-            '> eat\n' + \
-            '> quit (to quit eater)\n' + \
-            '> stop (to stop cooker)\n'
-
-
-print(welcome())
-
-
 context = zmq.Context()
-print("Connecting to cooker...")
-socket = context.socket(zmq.REQ)
+sockets = list()
 
-try:
-    socket.connect('tcp://localhost:5555')
-except zmq.ZMQError:
-    print('Could not connect to cooker.')
+
+def connect():
+    socket = context.socket(zmq.REQ)
+
+    try:
+        socket.connect('tcp://localhost:5555')
+        print('Connected.')
+        sockets.append(socket)
+    except zmq.ZMQError:
+        print('Could not connect to cooker.')
 
 
 def close():
-    socket.close()
+    [connection.close() for connection in sockets]
     context.term()
-    exit()
 
 
 register(close)
 
 
-while True:
-    message = input('Type <operation> <plate>.\n')
+def generate(i):
+    operation = 'cook' if randint(0, 100) < 50 else 'eat'
+    plate = 'Cookie' if randint(0, 100) < 50 else 'Cake'
 
-    socket.send_string(message)
-    plate_queue = socket.recv_string()
+    connect()
+
+    sockets[i].send_string('{} {}'.format(operation, plate))
+    plate_queue = sockets[i].recv_string()
     print(plate_queue)
+
+
+if __name__ == '__main__':
+    for _ in range(10):
+        process = Process(target=generate, args=(0,))
+        process.start()
+        process.join()
