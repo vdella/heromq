@@ -20,6 +20,8 @@ def connect():
 
 
 def close():
+    """Denotes operations to be done during program exiting.
+    Closes ao sockets and terminates their unified context."""
     [connection.close() for connection in sockets]
     context.term()
 
@@ -28,6 +30,10 @@ register(close)
 
 
 def generate(i):
+    """Randomly gets an operation and a type of plate for
+    initializing communication with the cooker. connect()s
+    to a socket and sends its operation and plate-type
+    for stating if it must be cooked or if it will be eaten."""
     operation = 'cook' if randint(0, 100) < 50 else 'eat'
     plate = 'Cookie' if randint(0, 100) < 50 else 'Cake'
 
@@ -39,7 +45,7 @@ def generate(i):
 
 
 if __name__ == '__main__':
-    for _ in range(10):
+    for _ in range(10):  # Creates 10 processes.
         process = Process(target=generate, args=(0,))
         process.start()
         process.join()
